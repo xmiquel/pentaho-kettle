@@ -246,6 +246,7 @@ import org.pentaho.di.ui.core.dialog.ShowMessageDialog;
 import org.pentaho.di.ui.core.dialog.SimpleMessageDialog;
 import org.pentaho.di.ui.core.dialog.Splash;
 import org.pentaho.di.ui.core.dialog.SubjectDataBrowserDialog;
+import org.pentaho.di.ui.core.events.dialog.ProviderFilterType;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.OsHelper;
@@ -4569,6 +4570,7 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
   public void openFileNew() throws Exception {
     FileDialogOperation fileDialogOperation =
       getFileDialogOperation( FileDialogOperation.OPEN, FileDialogOperation.ORIGIN_SPOON );
+    fileDialogOperation.setProviderFilter( ProviderFilterType.ALL_PROVIDERS.toString() );
     if ( !Utils.isEmpty( lastFileOpened ) ) {
       String folder = lastFileOpened.substring( 0, lastFileOpened.lastIndexOf( File.separator ) );
       fileDialogOperation.setPath( folder );
@@ -4606,6 +4608,7 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
       getFileDialogOperation( FileDialogOperation.SAVE, FileDialogOperation.ORIGIN_SPOON );
     fileDialogOperation.setFileType( fileType );
     fileDialogOperation.setFilename( meta.getName() );
+    fileDialogOperation.setProviderFilter( ProviderFilterType.ALL_PROVIDERS.toString() );
     if ( rep != null && meta.getRepositoryDirectory() != null ) {
       fileDialogOperation.setPath( meta.getRepositoryDirectory().getPath() );
     } else {
@@ -4626,15 +4629,21 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
       }
       if ( fileDialogOperation.getRepositoryObject() != null ) {
         RepositoryObject repositoryObject = (RepositoryObject) fileDialogOperation.getRepositoryObject();
-        final RepositoryDirectoryInterface oldDir = meta.getRepositoryDirectory();
-        final String oldName = meta.getName();
+        final RepositoryDirectoryInterface originalDir = meta.getRepositoryDirectory();
+        final String originalName = meta.getName();
+        final ObjectId originalObjectId = meta.getObjectId();
+        final String originalFilename = meta.getFilename();
+        meta.setObjectId( null );
+        meta.setFilename( null );
         meta.setRepositoryDirectory( repositoryObject.getRepositoryDirectory() );
         meta.setName( repositoryObject.getName() );
         saved = saveToRepositoryConfirmed( meta );
         if ( !saved ) {
           // if the object wasn't successfully saved, set the name and directory back to their original values
-          meta.setRepositoryDirectory( oldDir );
-          meta.setName( oldName );
+          meta.setRepositoryDirectory( originalDir );
+          meta.setName( originalName );
+          meta.setObjectId( originalObjectId );
+          meta.setFilename( originalFilename );
         }
       } else if ( fileDialogOperation.getPath() != null && fileDialogOperation.getFilename() != null ) {
         String filename = fileDialogOperation.getPath() + File.separator + fileDialogOperation.getFilename();

@@ -34,6 +34,10 @@ define([], function () {
           url: "/save",
           template: "<fileOpenSaveApp></fileOpenSaveApp>"
         })
+        .state('saveTo', {
+          url: "/saveTo",
+          template: "<fileOpenSaveApp></fileOpenSaveApp>"
+        })
         .state('open', {
           url: "/open",
           template: "<fileOpenSaveApp></fileOpenSaveApp>"
@@ -44,6 +48,10 @@ define([], function () {
         })
         .state('selectFile', {
           url: "/selectFile",
+          template: "<fileOpenSaveApp></fileOpenSaveApp>"
+        })
+        .state('selectFileFolder', {
+          url: "/selectFileFolder",
           template: "<fileOpenSaveApp></fileOpenSaveApp>"
         });
   }

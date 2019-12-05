@@ -22,6 +22,9 @@
 
 package org.pentaho.di.plugins.fileopensave.controllers;
 
+import org.pentaho.di.core.util.Utils;
+
+import org.pentaho.di.ui.core.events.dialog.ProviderFilterType;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
 import org.pentaho.di.plugins.fileopensave.api.providers.FileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.Result;
@@ -34,6 +37,7 @@ import org.pentaho.di.plugins.fileopensave.cache.FileCache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,18 +73,33 @@ public class FileController {
       .orElseThrow( InvalidFileProviderException::new );
   }
 
-  public List<Tree> load() {
+  List<Tree> load() {
+    return load( null );
+  }
+
+  public List<Tree> load( String filter ) {
     List<Tree> trees = new ArrayList<>();
-    for ( FileProvider fileProvider : fileProviders ) {
-      if ( fileProvider.isAvailable() ) {
-        trees.add( fileProvider.getTree() );
+    List<String> filters = Utils.isEmpty( filter ) || filter.equalsIgnoreCase( ProviderFilterType.DEFAULT.toString() )
+      ? Arrays.asList( ProviderFilterType.getDefaults() ) : Arrays.asList( filter.split( "[,]" ) );
+    // If there are no filters or default filter, use default list of providers. Else load only providers found in filter
+    if ( filters.contains( ProviderFilterType.ALL_PROVIDERS.toString() ) ) {
+      for ( FileProvider fileProvider : fileProviders ) {
+        if ( fileProvider.isAvailable() ) {
+          trees.add( fileProvider.getTree() );
+        }
+      }
+    } else {
+      for ( FileProvider fileProvider : fileProviders ) {
+        if ( fileProvider.isAvailable() && filters.contains( fileProvider.getType() ) ) {
+          trees.add( fileProvider.getTree() );
+        }
       }
     }
     return trees;
   }
 
   // TODO: Make cache account for filters
-  public List<File> getFiles( File file, String filters, Boolean useCache ) {
+  public List<File> getFiles( File file, String filters, Boolean useCache ) throws FileException {
     try {
       FileProvider<File> fileProvider = getFileProvider( file.getProvider() );
       if ( fileCache.containsKey( file ) && useCache ) {
@@ -132,8 +151,10 @@ public class FileController {
       File newFile = fileProvider.add( folder );
       if ( newFile != null ) {
         fileCache.addFile( fileProvider.getParent( folder ), newFile );
+        return Result.success( "", newFile );
+      } else {
+        return Result.error( "Unable to create folder", folder );
       }
-      return Result.success( "", newFile );
     } catch ( FileExistsException fee ) {
       return Result.fileCollision( "", folder );
     } catch ( FileException | InvalidFileProviderException fe ) {

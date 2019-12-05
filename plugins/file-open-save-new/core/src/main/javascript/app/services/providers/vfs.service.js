@@ -24,12 +24,13 @@
  */
 define(
     [
-      "../../components/utils"
+      "../../components/utils",
+      "pentaho/i18n-osgi!file-open-save-new.messages"
     ],
-    function (utils) {
+    function (utils, i18n) {
       "use strict";
 
-      var factoryArray = ["helperService", "$http", "$q", factory];
+      var factoryArray = ["helperService", "$http", "$q", "$location", factory];
       var module = {
         name: "vfsService",
         factory: factoryArray
@@ -46,11 +47,11 @@ define(
        *
        * @return {Object} The dataService api
        */
-      function factory(helperService, $http, $q) {
+      function factory(helperService, $http, $q, $location) {
         var baseUrl = "/cxf/browser-new";
         return {
           provider: "vfs",
-          order: 0,
+          order: 2,
           root: "VFS Connections",
           matchPath: matchPath,
           selectFolder: selectFolder,
@@ -59,6 +60,7 @@ define(
           getFilesByPath: getFilesByPath,
           createFolder: createFolder,
           addFolder: addFolder,
+          setFolderParams: setFolderParams,
           deleteFiles: deleteFiles,
           renameFile: renameFile,
           isCopy: isCopy,
@@ -99,6 +101,11 @@ define(
                   folder.children[i].provider = folder.provider;
                 }
                 resolve();
+              }, function(err) {
+                reject({
+                  title: i18n.get('file-open-save-plugin.vfs.unable-to-connect.title'),
+                  message: i18n.get('file-open-save-plugin.vfs.unable-to-connect.message')
+                });
               });
             } else {
               resolve();
@@ -120,24 +127,50 @@ define(
           if (file.root) {
             return null;
           }
-          return file.path ? file.path.match(/^[\w]+:\/\//)[0] : null;
+          var prefix = null;
+          if (file.path) {
+            prefix = file.path.match(/^[\w]+:\/\//)[0];
+            var matches = file.path.match(/\/\/(.*@)/);
+            if (matches) {
+              prefix += matches[1];
+            }
+          }
+          return prefix;
         }
 
         function _getTreePath(folder) {
-          if (!folder.path) {
+          if (!folder.parent) {
             return folder.root ? folder.root + "/" + folder.name : folder.name;
           }
+          var path = _justThePath(folder.connectionPath ? folder.connectionPath : folder.path);
           if (folder.connection) {
-            return folder.root + "/" + (folder.connection ? folder.connection + "/" : "") + folder.path.replace(/^[\w]+:\/\//, "");
+            return folder.root + "/" + path;
           }
-          return folder.path.replace(/^[\w]+:\/\//, "");
+          return path;
         }
 
+        /**
+         *  Returns the pvfs or vfs schema based file path based on the useSchema parameter
+         */
         function _getFilePath(file) {
-          if (file.connectionPath) {
-            return file.connectionPath;
+          if ($location.search().useSchema && $location.search().useSchema.toLowerCase() === "true") {
+            return file.path ? file.path : null;
           }
-          return file.path ? file.path : null;
+          return file.connectionPath ? file.connectionPath : file.path;
+        }
+
+        /**
+         *  Returns the pvfs or vfs schema based parent path based on the useSchema parameter
+         */
+        function _getFileParentPath(file) {
+          if ($location.search().useSchema && $location.search().useSchema.toLowerCase() === "true") {
+            return file.parent ? file.parent : null;
+          }
+          return file.connectionParentPath ? file.connectionParentPath : null;
+        }
+
+        function _justThePath(url) {
+          return url.replace(/^[\w]+:\/\//, "").replace(/.*@/, "");
         }
 
         /**
@@ -180,6 +213,14 @@ define(
           return helperService.httpPut([baseUrl, "add"].join("/"), folder);
         }
 
+        function setFolderParams(parentFolder, folder) {
+          if (parentFolder.connectionPath) {
+            folder.connection = parentFolder.connection;
+            folder.connectionParentPath = parentFolder.connectionPath;
+            folder.connectionPath = parentFolder.connectionPath + (parentFolder.connectionPath.charAt(parentFolder.connectionPath.length - 1) === "/" ? "" : "/") + folder.name;
+          }
+        }
+
         function deleteFiles(files) {
           return helperService.httpPost([baseUrl, "delete"].join("/"), files);
         }
@@ -197,11 +238,24 @@ define(
         }
 
         function open(file) {
-          select(null, file.name, file.path, file.parent, file.connection, file.provider, null);
+          select(JSON.stringify({
+            name: file.name,
+            path: _getFilePath(file),
+            parent: _getFileParentPath(file),
+            connection: file.connection,
+            provider: file.provider
+          }));
         }
 
         function save(filename, folder, currentFilename, override) {
-          select(null, filename, null, folder.path, folder.connection, folder.provider, null);
+          select(JSON.stringify({
+            name: filename,
+            path: _getFilePath(folder),
+            parent: _getFilePath(folder),
+            connection: folder.connection,
+            provider: folder.provider
+          }));
+
           return $q.resolve();
         }
       }

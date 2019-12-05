@@ -3,6 +3,8 @@
            xmlns:pen="http://www.pentaho.com/xml/schemas/pentaho-blueprint"
            xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs" default-timeout="20000">
 
+  <reference id="metaStoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator" />
+
   <bean id="repositoryBrowserController" scope="singleton"
         class="org.pentaho.di.plugins.fileopensave.controllers.RepositoryBrowserController">
     <argument ref="RepositoryFileProvider" />
@@ -15,13 +17,13 @@
     <argument ref="fileProviders" />
   </bean>
 
-  <bean id="VFSFileProvider" scope="singleton" class="org.pentaho.di.plugins.fileopensave.providers.vfs.VFSFileProvider" />
   <bean id="RepositoryFileProvider" scope="singleton" class="org.pentaho.di.plugins.fileopensave.providers.repository.RepositoryFileProvider" />
   <bean id="LocalFileProvider" scope="singleton" class="org.pentaho.di.plugins.fileopensave.providers.local.LocalFileProvider" />
+  <bean id="VFSFileProvider" scope="singleton" class="org.pentaho.di.plugins.fileopensave.providers.vfs.VFSFileProvider" />
 
-  <service id="VFSFileProviderService" ref="VFSFileProvider" interface="org.pentaho.di.plugins.fileopensave.api.providers.FileProvider"/>
   <service id="RepositoryFileProviderService" ref="RepositoryFileProvider" interface="org.pentaho.di.plugins.fileopensave.api.providers.FileProvider"/>
   <service id="LocalFileProviderService" ref="LocalFileProvider" interface="org.pentaho.di.plugins.fileopensave.api.providers.FileProvider"/>
+  <service id="VFSFileProviderService" ref="VFSFileProvider" interface="org.pentaho.di.plugins.fileopensave.api.providers.FileProvider"/>
 
   <jaxrs:server address="/browser-new" id="browser-endpoint">
     <jaxrs:serviceBeans>
@@ -46,6 +48,54 @@
   <bean id="RepositoryOpenSaveExtensionPoint" scope="singleton"
         class="org.pentaho.di.plugins.fileopensave.extension.FileOpenSaveExtensionPoint">
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="TransBeforeSaveExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.TransBeforeSaveExtensionPoint">
+    <argument ref="metaStoreLocator" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="JobBeforeSaveExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.JobBeforeSaveExtensionPoint">
+    <argument ref="metaStoreLocator" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="TransAfterOpenExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.TransAfterOpenExtensionPoint">
+    <argument ref="metaStoreLocator" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="JobAfterOpenExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.JobAfterOpenExtensionPoint">
+    <argument ref="metaStoreLocator" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="BeforeSaveToRepositoryExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.BeforeSaveToRepositoryExtensionPoint">
+    <argument ref="metaStoreLocator" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="JobFinishExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.JobFinishExtensionPoint">
+    <argument ref="fileCache"/>
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="TransFinishExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.extension.TransFinishExtensionPoint">
+    <argument ref="fileCache"/>
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="RepoConnectionExtensionPoint" scope="singleton"
+        class="org.pentaho.di.plugins.fileopensave.lifecycle.FileBrowserLifecyclePlugin">
+    <argument ref="fileCache"/>
+    <pen:di-plugin type="org.pentaho.di.ui.spoon.SpoonPluginType"/>
   </bean>
 
   <reference-list id="fileProviders"

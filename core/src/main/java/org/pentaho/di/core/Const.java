@@ -920,6 +920,7 @@ public class Const {
   /**
    * The XML file that contains the list of native Kettle two-way password encoder plugins
    */
+  @SuppressWarnings( "squid:S2068" )
   public static final String XML_FILE_KETTLE_PASSWORD_ENCODER_PLUGINS = "kettle-password-encoder-plugins.xml";
 
   /**
@@ -931,17 +932,20 @@ public class Const {
   /**
    * Specifies the password encoding plugin to use by ID (Kettle is the default).
    */
+  @SuppressWarnings( "squid:S2068" )
   public static final String KETTLE_PASSWORD_ENCODER_PLUGIN = "KETTLE_PASSWORD_ENCODER_PLUGIN";
 
   /**
    * The name of the environment variable that will contain the alternative location of the kettle-password-encoder-plugins.xml
    * file
    */
+  @SuppressWarnings( "squid:S2068" )
   public static final String KETTLE_PASSWORD_ENCODER_PLUGINS_FILE = "KETTLE_PASSWORD_ENCODER_PLUGINS_FILE";
 
   /**
    * The name of the Kettle encryption seed environment variable for the KettleTwoWayPasswordEncoder class
    */
+  @SuppressWarnings( "squid:S2068" )
   public static final String KETTLE_TWO_WAY_PASSWORD_ENCODER_SEED = "KETTLE_TWO_WAY_PASSWORD_ENCODER_SEED";
 
   /**
@@ -1005,6 +1009,7 @@ public class Const {
   /**
    * Set this variable to with the intended password to pass as repository credentials
    */
+  @SuppressWarnings( "squid:S2068" )
   public static final String KETTLE_PASSWORD = "KETTLE_PASSWORD";
 
   /**
@@ -1295,11 +1300,30 @@ public class Const {
   public static final String SHARED_STREAMING_BATCH_POOL_SIZE = "SHARED_STREAMING_BATCH_POOL_SIZE";
 
   /**
+   * <p>This environment variable is used to specify a location used to deploy a shim driver into PDI.</p>
+   */
+  public static final String SHIM_DRIVER_DEPLOYMENT_LOCATION = "SHIM_DRIVER_DEPLOYMENT_LOCATION";
+
+  /**
    * <p>This environment variable is used by XSD validation steps to enable or disable external entities.</p>
    * <p>By default external entities are allowed.</p>
    */
   public static final String ALLOW_EXTERNAL_ENTITIES_FOR_XSD_VALIDATION = "ALLOW_EXTERNAL_ENTITIES_FOR_XSD_VALIDATION";
   public static final String ALLOW_EXTERNAL_ENTITIES_FOR_XSD_VALIDATION_DEFAULT = "true";
+
+  /**
+   * <p>This environment variable is used to define the default division result precision between BigDecimals.</p>
+   * <p>By default, and when precision is -1, precision is unlimited.</p>
+   */
+  public static final String KETTLE_BIGDECIMAL_DIVISION_PRECISION = "KETTLE_BIGDECIMAL_DIVISION_PRECISION";
+  public static final String KETTLE_BIGDECIMAL_DIVISION_PRECISION_DEFAULT = "-1";
+
+  /**
+   * <p>This environment variable is used to define the default division result rounding mode between BigDecimals.</p>
+   * <p>By default, rouding mode is half even.</p>
+   */
+  public static final String KETTLE_BIGDECIMAL_DIVISION_ROUNDING_MODE = "KETTLE_BIGDECIMAL_DIVISION_ROUNDING_MODE";
+  public static final String KETTLE_BIGDECIMAL_DIVISION_ROUNDING_MODE_DEFAULT = "HALF_EVEN";
 
   /**
    * rounds double f to any number of places after decimal point Does arithmetic using BigDecimal class to avoid integer

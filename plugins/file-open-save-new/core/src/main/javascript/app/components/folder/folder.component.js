@@ -69,10 +69,14 @@ define([
     vm.canPaste = canPaste;
     vm.onRightClick = onRightClick;
     vm.onDeleteFolder = onDeleteFolder;
+    vm.onBodyClick = onBodyClick;
+    vm.onKeyDown = onKeyDown;
+    vm.onKeyUp = onKeyUp;
     vm.width = 0;
     vm.state = $state;
     vm.getId = getId;
     vm.targetFolder = null;
+    vm.errorType = 0;
 
     /**
      * Called whenever one-way bindings are updated.
@@ -84,6 +88,33 @@ define([
       if (changes.selectedFolder) {
         _setWidth();
       }
+    }
+
+    function onBodyClick(e, id) {
+      var parentNode = e.target.parentNode;
+      var found = false;
+      while (parentNode) {
+        if (parentNode.id === id) {
+          found = true;
+          break;
+        }
+        parentNode = parentNode.parentNode;
+      }
+      if (!found) {
+        vm.targetFolder = null;
+      }
+    }
+
+    function onKeyDown(event) {
+      if (event.target.tagName !== "INPUT") {
+        if (event.keyCode === 27) {
+          vm.targetFolder = null;
+        }
+      }
+    }
+
+    function onKeyUp(event) {
+      // Ignored
     }
 
     function getTree() {
@@ -118,6 +149,7 @@ define([
      * @param {Object} folder - folder object
      */
     function selectFolder(folder) {
+      vm.targetFolder = null;
       vm.onSelect({selectedFolder: folder});
     }
 
